@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import os
 import re
 import sqlite3
 import sys
@@ -38,9 +39,44 @@ from database import DEFAULT_DB
 APP_TITLE = "WyrmMango"
 APP_VERSION = "0.1.0"
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-IMPORTER_PATH = Path(__file__).resolve().parent / "import_chatgpt.py"
-ASSET_DIR = PROJECT_ROOT / "assets"
+IS_FROZEN = bool(getattr(sys, "frozen", False))
+
+if IS_FROZEN:
+    BUNDLE_ROOT = Path(
+        getattr(
+            sys,
+            "_MEIPASS",
+            Path(sys.executable).resolve().parent,
+        )
+    )
+    PROJECT_ROOT = Path(sys.executable).resolve().parent
+    IMPORTER_PATH = BUNDLE_ROOT / "WyrmMangoImporter.exe"
+    ASSET_DIR = BUNDLE_ROOT / "assets"
+
+    LOCAL_DATA_ROOT = (
+        Path(
+            os.environ.get(
+                "LOCALAPPDATA",
+                str(Path.home()),
+            )
+        )
+        / "WyrmMango"
+    )
+    RELEASE_DB = (
+        LOCAL_DATA_ROOT
+        / "data"
+        / "chatarchive.sqlite"
+    )
+else:
+    BUNDLE_ROOT = Path(__file__).resolve().parent.parent
+    PROJECT_ROOT = BUNDLE_ROOT
+    IMPORTER_PATH = (
+        Path(__file__).resolve().parent
+        / "import_chatgpt.py"
+    )
+    ASSET_DIR = PROJECT_ROOT / "assets"
+    RELEASE_DB = Path(DEFAULT_DB)
+
 BRAND_ICON = ASSET_DIR / "wyrmmango_icon.png"
 
 
@@ -400,7 +436,13 @@ class WyrmMangoWindow(QMainWindow):
         if BRAND_ICON.exists():
             self.setWindowIcon(QIcon(str(BRAND_ICON)))
 
-        self.db_path = Path(DEFAULT_DB)
+        self.db_path = Path(RELEASE_DB)
+
+        if IS_FROZEN:
+            self.db_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
         self.results = []
 
         self.import_process = None
@@ -2365,15 +2407,29 @@ class WyrmMangoWindow(QMainWindow):
             self.import_process_error
         )
 
-        arguments = [
-            str(IMPORTER_PATH),
-            str(self.selected_export),
-            "--database",
-            str(self.db_path),
-        ]
+        if IS_FROZEN:
+
+            program = str(IMPORTER_PATH)
+
+            arguments = [
+                str(self.selected_export),
+                "--database",
+                str(self.db_path),
+            ]
+
+        else:
+
+            program = sys.executable
+
+            arguments = [
+                str(IMPORTER_PATH),
+                str(self.selected_export),
+                "--database",
+                str(self.db_path),
+            ]
 
         self.import_process.start(
-            sys.executable,
+            program,
             arguments,
         )
 
