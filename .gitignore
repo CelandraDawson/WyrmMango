@@ -21,3 +21,10 @@ venv/
 
 # Local backup files
 *.bak
+
+# Windows release build artifacts
+build/
+dist/
+release/
+*.spec
+.release_backup/
