@@ -1,0 +1,23 @@
+# PRIVATE USER DATA - NEVER COMMIT
+*.zip
+*.db
+*.sqlite
+*.sqlite3
+conversations*.json
+user.json
+data/
+archive/
+exports/
+attachments/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local config
+.env
+
+# Local backup files
+*.bak
