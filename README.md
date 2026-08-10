@@ -157,4 +157,5 @@ Current application version: **0.1.0**
 
 ## License
 
-A license has not yet been selected.
+WyrmMango is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. See [LICENSE](LICENSE).
+
