@@ -1,88 +1,108 @@
-<p align="center">
-  <img src="assets/wyrmmango_icon.png" alt="WyrmMango logo" width="180">
-</p>
+# WyrmMango
 
-<h1 align="center">WyrmMango</h1>
+**Dig deep. Find the thread.**
 
-<p align="center">
-  <strong>Dig deep. Find the thread.</strong><br>
-  Private, local-first search and retrieval for your ChatGPT conversation history.
-</p>
+Copyright © 2026 Celandra Dawson
 
-<p align="center">
-  <strong>Version 0.1.0</strong> · Python · SQLite FTS5 · PySide6
-</p>
+WyrmMango is a private, local-first desktop application for importing, unifying, and searching your own AI conversation and correspondence archives.
 
----
+WyrmMango 0.2.0 supports ChatGPT, Claude, and Gmail/MBOX sources in one local SQLite archive, so you can answer a simple question across services:
 
-## What is WyrmMango?
+> **Where did I talk about this?**
 
-WyrmMango is a private, local-first desktop application for importing and searching your own ChatGPT conversation history.
-
-Your archive stays on your computer. WyrmMango builds a local SQLite search database so you can rediscover projects, ideas, code, decisions, and forgotten conversations without uploading your history to another service.
-
-## Screenshot
-
-<p align="center">
-  <img src="assets/wyrmmango_screenshot.png" alt="WyrmMango desktop application" width="100%">
-</p>
+Your archive stays on your computer. WyrmMango does not require ongoing access to your ChatGPT, Claude, or Gmail accounts after you have obtained your local export files.
 
 ## Features
 
-- Import an official ChatGPT data export ZIP
-- Automatically discover numbered conversation JSON files
-- Preserve conversation and message data locally
+- Import official ChatGPT data export ZIP files
+- Import Claude export ZIP files or extracted export directories
+- Import Gmail Takeout MBOX files
+- Preserve source provenance in one shared local archive
+- Search all sources together or filter by source
+- Filter Gmail results by source account
 - SQLite FTS5 full-text search
 - Exact phrase search
-- Filter by message role, conversation title, and date range
-- Read matched messages
-- Open complete conversations
-- Export search results to Markdown
-- Export complete conversations to Markdown
-- Re-import updated ChatGPT exports
+- Filter by role, conversation title, and date range where applicable
+- Read matched messages and full conversations
+- Export search results and conversations to Markdown
+- Re-import updated local archives
 - Local desktop interface built with PySide6
-- Windows desktop shortcut support
 
 ## Privacy
 
-WyrmMango is designed around local ownership of personal conversation history.
+WyrmMango is designed around local ownership of personal archives.
 
-The public source repository does **not** contain your ChatGPT conversations.
+The public source repository does **not** contain your private conversations, email, local SQLite database, or source export archives.
 
 The following are excluded from Git by default:
 
-- ChatGPT export ZIP files
-- conversation JSON files
+- ChatGPT export ZIP files and extracted conversation JSON
+- Claude export ZIP files and extracted archive content
+- Gmail Takeout archives and MBOX files
 - SQLite databases
-- attachments
-- local archive directories
+- extracted attachments and local attachment data
+- local archive and import directories
 - local environment files
 - Python virtual environments
 - backup files
+- generated release-work directories
 
-**Never commit your personal ChatGPT export or generated SQLite database to a public repository.**
+Never commit your personal source archives or generated SQLite database to a public repository.
 
-## Requirements
+## Supported Sources
+
+### ChatGPT
+
+Use an official ChatGPT data export ZIP. The source-specific ChatGPT importer preserves conversation and message provenance while normalizing content into the shared archive.
+
+### Claude
+
+The desktop application accepts a Claude export ZIP. The source-specific Claude importer also accepts an extracted export directory when run directly from the command line. Claude data is normalized into the same searchable archive.
+
+### Gmail / MBOX
+
+The desktop application accepts either a Google Takeout ZIP containing one or more MBOX files or a raw `.mbox` file. WyrmMango preserves source-account provenance and available mail metadata while importing mail into the shared archive.
+
+Email and HTML are treated as untrusted data. Imported content is not executed as instructions.
+
+## Running from Source
+
+Requirements:
 
 - Python 3.10 or newer
 - SQLite with FTS5 support
 - PySide6
 
-Install the Python dependency with:
+Install dependencies:
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-## Running WyrmMango
-
-From the project directory:
+Run WyrmMango:
 
 ```powershell
 & ".\.venv\Scripts\python.exe" ".\src\app.py"
 ```
 
-On Windows, `pythonw.exe` can be used for a desktop shortcut so WyrmMango launches without a console window.
+## Windows Release
+
+The standalone Windows release contains:
+
+```text
+WyrmMango.exe
+LICENSE
+README.md
+SHA256.txt
+```
+
+The packaged application stores its local database under:
+
+```text
+%LOCALAPPDATA%\WyrmMango\data\chatarchive.sqlite
+```
+
+`SHA256.txt` records the SHA-256 hash of the packaged executable so the release artifact can be checked before use.
 
 ## Project Structure
 
@@ -90,20 +110,24 @@ On Windows, `pythonw.exe` can be used for a desktop shortcut so WyrmMango launch
 WyrmMango/
 ├── assets/
 │   ├── wyrmmango_icon.png
-│   ├── wyrmmango.ico
-│   └── wyrmmango_screenshot.png
+│   └── wyrmmango.ico
 ├── src/
 │   ├── app.py
 │   ├── database.py
+│   ├── import_archive.py
 │   ├── import_chatgpt.py
+│   ├── import_claude.py
+│   ├── import_gmail.py
 │   └── search_archive.py
+├── build_windows.ps1
+├── prepare_windows_release.py
 ├── README.md
 ├── ROADMAP.md
 ├── requirements.txt
 └── .gitignore
 ```
 
-Local user data such as `data/` and `exports/` is intentionally excluded from the public repository.
+Local user data such as `data/`, imports, databases, backups, and generated exports are intentionally excluded from the public repository.
 
 ## Command-Line Search
 
@@ -119,24 +143,6 @@ Exact phrase search:
 python .\src\search_archive.py "model registry" --exact
 ```
 
-Limit results:
-
-```powershell
-python .\src\search_archive.py "Python" --limit 10
-```
-
-Filter by message role:
-
-```powershell
-python .\src\search_archive.py "SQLite" --role user
-```
-
-Filter by date:
-
-```powershell
-python .\src\search_archive.py "project" --after 2025-01-01 --before 2026-01-01
-```
-
 Show archive statistics:
 
 ```powershell
@@ -145,17 +151,18 @@ python .\src\search_archive.py --stats
 
 ## Local Database
 
-The local SQLite archive is deliberately ignored by Git and is not part of the WyrmMango source repository.
-
-## Roadmap
-
-See [`ROADMAP.md`](ROADMAP.md) for planned UI and branding improvements.
+WyrmMango uses a local SQLite database with FTS5 search support. The database is private local data and is not part of the public source repository.
 
 ## Version
 
-Current application version: **0.1.0**
+Current application version: **0.2.0**
+
+## Copyright
+
+**Copyright © 2026 Celandra Dawson.**
+
+This notice identifies the WyrmMango project copyright holder. Third-party components retain their own licenses and copyrights.
 
 ## License
 
-WyrmMango is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. See [LICENSE](LICENSE).
-
+WyrmMango is distributed under the **GNU General Public License v3.0**. See `LICENSE` for the complete license text.

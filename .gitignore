@@ -28,3 +28,9 @@ dist/
 release/
 *.spec
 .release_backup/
+
+# WyrmMango private data and build artifacts
+*.mbox
+*.eml
+.release_stage/
+.release_work/
